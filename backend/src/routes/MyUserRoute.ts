@@ -1,6 +1,8 @@
 import express from "express";
 import MyUserController from "../controllers/MyUserController";
-import { jwtCheck } from "../middleware/auth";
+import { jwtCheck, jwtParse } from "../middleware/auth";
+import { validateMyUserRequest } from "../middleware/validation";
+import { Request, Response, NextFunction } from "express";
 
 const router = express.Router();
 
@@ -8,7 +10,7 @@ const router = express.Router();
 router.post("/",jwtCheck, (req, res, next) => {
   MyUserController.createCurrentUser(req, res)
 });
-router.put("/",(req,res,next) =>{
+router.put("/",jwtCheck,jwtParse,validateMyUserRequest,(req: Request, res: Response, next: NextFunction) =>{
   MyUserController.updateCurrentUser(req, res)
 });
 
