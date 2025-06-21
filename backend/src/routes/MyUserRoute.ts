@@ -7,10 +7,12 @@ import { Request, Response, NextFunction } from "express";
 const router = express.Router();
 
 // /api/my/user
+router.get("/", jwtCheck, jwtParse, (req, res, next) => {
+  MyUserController.getCurrentUser(req, res);
+});
 router.post("/", jwtCheck, (req, res, next) => {
   MyUserController.createCurrentUser(req, res);
 });
-
 router.put(
   "/",
   jwtCheck,

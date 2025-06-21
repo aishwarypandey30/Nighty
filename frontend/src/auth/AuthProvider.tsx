@@ -36,4 +36,5 @@ const AuthProvider = ({ children }: Props) => {
   );
 };
 
-export default Auth0Provider;
+export default AuthProvider;
+;
