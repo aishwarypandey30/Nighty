@@ -1,8 +1,8 @@
 import { auth } from "express-oauth2-jwt-bearer";
 import { Request, Response, NextFunction } from "express";
-import jwt from "jsonwebtoken";
 import User from "../models/user.models";
 
+// Extend Express Request interface
 declare global {
   namespace Express {
     interface Request {
@@ -12,46 +12,41 @@ declare global {
   }
 }
 
+// JWT verification middleware (verifies signature)
 export const jwtCheck = auth({
   audience: process.env.AUTH0_AUDIENCE,
   issuerBaseURL: process.env.AUTH0_ISSUER_BASE_URL,
   tokenSigningAlg: "RS256",
 });
 
+// Middleware to extract userId from DB based on token
 export const jwtParse = async (
   req: Request,
   res: Response,
   next: NextFunction
-): Promise<void> => {
-  const { authorization } = req.headers;
+) => {
+  const auth0Id = (req as any).auth?.sub;
 
-  if (!authorization || !authorization.startsWith("Bearer ")) {
-    res.sendStatus(401); // don't return this
-    return;
+  if (!auth0Id) {
+    return res
+      .status(401)
+      .json({ message: "Unauthorized - missing sub claim" });
   }
 
-  const token = authorization.split(" ")[1];
-
   try {
-    const decoded = jwt.decode(token) as jwt.JwtPayload;
-    const auth0Id = decoded?.sub;
-
-    if (!auth0Id) {
-      res.sendStatus(401);
-      return;
-    }
-
     const user = await User.findOne({ auth0Id });
 
     if (!user) {
-      res.sendStatus(401);
-      return;
+      return res
+        .status(401)
+        .json({ message: "Unauthorized - user not found in DB" });
     }
 
     req.auth0Id = auth0Id;
     req.userId = user._id.toString();
     next();
   } catch (error) {
-    res.sendStatus(401);
+    console.error(error);
+    return res.status(500).json({ message: "Internal server error" });
   }
 };
