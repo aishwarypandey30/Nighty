@@ -1,4 +1,4 @@
-export const cuisineList = [
+export const cuisineList: string[] = [
   "American",
   "BBQ",
   "Breakfast",
