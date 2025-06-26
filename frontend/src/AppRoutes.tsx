@@ -1,10 +1,13 @@
-import { Routes, Route, Navigate } from "react-router-dom";
-import Layout from "./layouts/layout" ;
+import { Navigate, Route, Routes } from "react-router-dom";
+import Layout from "./layouts/layout";
 import HomePage from "./pages/HomePage";
-import Auth0CallbackPage from "./pages/Auth0CallbackPage";
+import AuthCallbackPage from "./pages/Auth0CallbackPage";
 import UserProfilePage from "./pages/UserProfilePage";
 import ProtectedRoute from "./auth/ProtectedRoute";
 import ManageRestaurantPage from "./pages/ManageRestaurantPage";
+import SearchPage from "./pages/SearchPage";
+
+
 const AppRoutes = () => {
   return (
     <Routes>
@@ -16,7 +19,15 @@ const AppRoutes = () => {
           </Layout>
         }
       />
-      <Route path="/auth-callback" element={<Auth0CallbackPage />}></Route>
+      <Route path="/auth-callback" element={<AuthCallbackPage />}></Route>
+      <Route
+        path="/search/:city"
+        element={
+          <Layout showHero={false}>
+            <SearchPage />
+          </Layout>
+        }
+      ></Route>
       <Route element={<ProtectedRoute />}>
         <Route
           path="/user-profile"
@@ -26,7 +37,6 @@ const AppRoutes = () => {
             </Layout>
           }
         />
-
         <Route
           path="/manage-restaurant"
           element={
