@@ -5,23 +5,27 @@ import {
   handleValidationErrors,
 } from "../middleware/validation";
 import * as myUserController from "../controllers/MyUserController";
+import { asyncHandler } from "../middleware/asyncMiddleware";
 
 const router = express.Router();
 
-router.get("/api/my/user", jwtCheck, jwtParse, myUserController.getCurrentUser);
-router.post(
-  "/api/my/user",
+router.get(
+  "/",
   jwtCheck,
-  jwtParse,
-  myUserController.createCurrentUser
+  asyncHandler(jwtParse),
+  asyncHandler(myUserController.getCurrentUser)
+);
+router.post(
+  "/",
+  jwtCheck,
+  asyncHandler(jwtParse),
+  asyncHandler(myUserController.createCurrentUser)
 );
 router.put(
-  "/api/my/user",
+  "/",
   jwtCheck,
-  jwtParse,
-  validateMyUserRequest,
-  handleValidationErrors,
-  myUserController.updateCurrentUser
+  asyncHandler(jwtParse),
+  asyncHandler(myUserController.updateCurrentUser)
 );
 
 export default router;
