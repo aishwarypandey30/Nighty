@@ -1,8 +1,8 @@
 import { auth } from "express-oauth2-jwt-bearer";
 import { Request, Response, NextFunction } from "express";
+import jwt from "jsonwebtoken";
 import User from "../models/user.models";
 
-// Extend Express Request interface
 declare global {
   namespace Express {
     interface Request {
@@ -22,24 +22,36 @@ export const jwtParse = async (
   req: Request,
   res: Response,
   next: NextFunction
-) => {
-  const auth0Id = (req as any).auth?.sub;
+): Promise<void> => {
+  const { authorization } = req.headers;
 
-  if (!auth0Id) {
-    return res
-      .status(401)
-      .json({ message: "Unauthorized - missing sub claim" });
+  if (!authorization || !authorization.startsWith("Bearer ")) {
+    res.sendStatus(401); // don't return this
+    return;
   }
 
-  const user = await User.findOne({ auth0Id });
+  const token = authorization.split(" ")[1];
 
-  if (!user) {
-    return res
-      .status(401)
-      .json({ message: "Unauthorized - user not found in DB" });
+  try {
+    const decoded = jwt.decode(token) as jwt.JwtPayload;
+    const auth0Id = decoded?.sub;
+
+    if (!auth0Id) {
+      res.sendStatus(401);
+      return;
+    }
+
+    const user = await User.findOne({ auth0Id });
+
+    if (!user) {
+      res.sendStatus(401);
+      return;
+    }
+
+    req.auth0Id = auth0Id;
+    req.userId = user._id.toString();
+    next();
+  } catch (error) {
+    res.sendStatus(401);
   }
-
-  req.auth0Id = auth0Id;
-  req.userId = user._id.toString();
-  next();
 };
