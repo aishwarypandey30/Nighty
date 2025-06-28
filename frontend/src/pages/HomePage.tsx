@@ -32,7 +32,7 @@ const HomePage = () => {
             Order takeaway even faster!
           </span>
           <span>
-            Download the MernEats App for faster ordering and personalised
+            Download the Nighty App for faster ordering and personalised
             recommendations
           </span>
           <img src={appDownloadImage} />
