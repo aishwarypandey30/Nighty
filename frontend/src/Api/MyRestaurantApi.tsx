@@ -1,5 +1,4 @@
-// when doing get request we use query hook and when doing post or get request we use mutation hook from react-query library 
-import type {Restaurant } from "@/types";
+import type { Order, Restaurant } from "@/types";
 import { useAuth0 } from "@auth0/auth0-react";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { toast } from "sonner";
@@ -58,7 +57,7 @@ export const useCreateMyRestaurant = () => {
 
   const {
     mutate: createRestaurant,
-    isPending,
+    isLoading,
     isSuccess,
     error,
   } = useMutation({ mutationFn: createMyRestaurantRequest });
@@ -71,7 +70,87 @@ export const useCreateMyRestaurant = () => {
     toast.error("Unable to update restaurant");
   }
 
-  return { createRestaurant, isPending };
+  return { createRestaurant, isLoading };
+};
+
+export const useGetMyRestaurantOrders = () => {
+  const { getAccessTokenSilently } = useAuth0();
+
+  const getMyRestaurantOrdersRequest = async (): Promise<Order[]> => {
+    const accessToken = await getAccessTokenSilently();
+
+    const response = await fetch(`${API_BASE_URL}/api/my/restaurant/order`, {
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+        "Content-Type": "application/json",
+      },
+    });
+
+    if (!response.ok) {
+      throw new Error("Failed to fetch orders");
+    }
+
+    return response.json();
+  };
+
+  const { data: orders, isLoading } = useQuery({
+    queryKey: ["fetchMyRestaurantOrders"],
+    queryFn: getMyRestaurantOrdersRequest,
+  });
+
+  return { orders, isLoading };
+};
+
+type UpdateOrderStatusRequest = {
+  orderId: string;
+  status: string;
+};
+
+export const useUpdateMyRestaurantOrder = () => {
+  const { getAccessTokenSilently } = useAuth0();
+
+  const updateMyRestaurantOrder = async (
+    updateStatusOrderRequest: UpdateOrderStatusRequest
+  ) => {
+    const accessToken = await getAccessTokenSilently();
+
+    const response = await fetch(
+      `${API_BASE_URL}/api/my/restaurant/order/${updateStatusOrderRequest.orderId}/status`,
+      {
+        method: "PATCH",
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ status: updateStatusOrderRequest.status }),
+      }
+    );
+
+    if (!response.ok) {
+      throw new Error("Failed to update status");
+    }
+
+    return response.json();
+  };
+
+  const {
+    mutateAsync: updateRestaurantStatus,
+    isLoading,
+    isError,
+    isSuccess,
+    reset,
+  } = useMutation({ mutationFn: updateMyRestaurantOrder });
+
+  if (isSuccess) {
+    toast.success("Order updated");
+  }
+
+  if (isError) {
+    toast.error("Unable to update order");
+    reset();
+  }
+
+  return { updateRestaurantStatus, isLoading };
 };
 
 export const useUpdateMyRestaurant = () => {
@@ -99,7 +178,7 @@ export const useUpdateMyRestaurant = () => {
 
   const {
     mutate: updateRestaurant,
-    isPending,
+    isLoading,
     error,
     isSuccess,
   } = useMutation({ mutationFn: updateRestaurantRequest });
@@ -112,5 +191,5 @@ export const useUpdateMyRestaurant = () => {
     toast.error("Unable to update restaurant");
   }
 
-  return { updateRestaurant, isPending };
+  return { updateRestaurant, isLoading };
 };
