@@ -1,43 +1,42 @@
 import { Request, Response } from "express";
 import User from "../models/user.models";
 
-// GET /api/my/user
-export const getCurrentUser = async (req: Request, res: Response) => {
+const getCurrentUser = async (req: Request, res: Response) => {
   try {
-    const user = await User.findById(req.userId);
-    if (!user) {
+    const currentUser = await User.findOne({ _id: req.userId });
+    if (!currentUser) {
       return res.status(404).json({ message: "User not found" });
     }
-    return res.json(user);
+
+    res.json(currentUser);
   } catch (error) {
-    console.error(error);
-    return res.status(500).json({ message: "Internal server error" });
+    console.log(error);
+    return res.status(500).json({ message: "Something went wrong" });
   }
 };
 
-// POST /api/my/user
-export const createCurrentUser = async (req: Request, res: Response) => {
+const createCurrentUser = async (req: Request, res: Response) => {
   try {
     const { auth0Id } = req.body;
     const existingUser = await User.findOne({ auth0Id });
 
     if (existingUser) {
-      return res.status(200).send(); // already exists, nothing to do
+      return res.status(200).send();
     }
 
     const newUser = new User(req.body);
     await newUser.save();
-    return res.status(201).json(newUser);
+
+    res.status(201).json(newUser.toObject());
   } catch (error) {
-    console.error(error);
-    return res.status(500).json({ message: "Error creating user" });
+    console.log(error);
+    res.status(500).json({ message: "Error creating user" });
   }
 };
 
-// PUT /api/my/user
-export const updateCurrentUser = async (req: Request, res: Response) => {
+const updateCurrentUser = async (req: Request, res: Response) => {
   try {
-    const { name, addressLine1, city, country } = req.body;
+    const { name, addressLine1, country, city } = req.body;
     const user = await User.findById(req.userId);
 
     if (!user) {
@@ -50,9 +49,16 @@ export const updateCurrentUser = async (req: Request, res: Response) => {
     user.country = country;
 
     await user.save();
-    return res.json(user);
+
+    res.send(user);
   } catch (error) {
-    console.error(error);
-    return res.status(500).json({ message: "Error updating user" });
+    console.log(error);
+    res.status(500).json({ message: "Error updating user" });
   }
+};
+
+export default {
+  getCurrentUser,
+  createCurrentUser,
+  updateCurrentUser,
 };

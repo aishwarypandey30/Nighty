@@ -6,6 +6,7 @@ import { v2 as cloudinary } from "cloudinary";
 import myRestaurantRoute from "./routes/MyRestaurantRoutes";
 import RestaunrantRoute from "./routes/RestaurantRoutes";
 import dotenv from "dotenv";
+import orderRoute from "./routes/OrderRoute";
 dotenv.config();
 
 mongoose
@@ -25,8 +26,11 @@ cloudinary.config({
 });
 
 const app = express();
-app.use(express.json());
 app.use(cors());
+
+app.use("/api/order/checkout/webhook", express.raw({ type: "*/*" }));
+
+app.use(express.json());
 
 app.get("/health", async (req: Request, res: Response) => {
   res.send({ message: "health OK!" });
@@ -35,6 +39,7 @@ app.get("/health", async (req: Request, res: Response) => {
 app.use("/api/my/user", myUserRoute);
 app.use("/api/my/restaurant", myRestaurantRoute);
 app.use("/api/restaurant", RestaunrantRoute);
+app.use("/api/order", orderRoute);
 
 app.listen(process.env.PORT, () => {
   console.log(`Server is running on port ${process.env.PORT || 3000}`);
