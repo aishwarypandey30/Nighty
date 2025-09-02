@@ -41,7 +41,9 @@ router.post(
   validateMyRestaurantRequest,
   jwtCheck,
   jwtParse,
-  
+  (req : Request,res : Response) =>{
+    MyRestaurantController.createMyRestaurant(req,res)
+  }
 );
 
 router.put(
